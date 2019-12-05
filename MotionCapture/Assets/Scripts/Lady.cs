@@ -9,6 +9,8 @@ public class Lady : MonoBehaviour
     public float speed = 1.5f;
     [Header("旋轉速度"), Range(1f, 100f)]
     public float turn = 1.5f;
+    [Header("血量"), Range(100, 500)]
+    public float hp = 100;
 
     [Header("動畫控制器：參數名稱")]
     public string parRun = "跑步開關";
@@ -16,6 +18,27 @@ public class Lady : MonoBehaviour
     public string parDam = "受傷觸發";
     public string parJump = "跳躍觸發";
     public string parDead = "死亡開關";
+
+    // 屬性 可以設定權限 取得 get、設定 set
+    // 修飾詞 類型 名稱 { 取得 設定 }
+    public int MyProperty { get; set; } // 可以取得 可以設定
+
+    public bool isAttack
+    {
+        get
+        {
+            return ani.GetCurrentAnimatorStateInfo(0).IsName("攻擊");
+        }
+    }
+
+    public bool isDamage
+    {
+        get
+        {
+            return ani.GetCurrentAnimatorStateInfo(0).IsName("受傷");
+        }
+    }
+
 
     private void Start()
     {
@@ -25,6 +48,12 @@ public class Lady : MonoBehaviour
 
     private void Update()
     {
+        // 判斷動畫狀態
+        //print("是否為攻擊動畫：" + isAttack);
+        //print("是否為受傷動畫：" + isDamage);
+
+        if (isAttack || isDamage) return;   // 跳出
+
         Turn();
         Attack();
     }
@@ -32,8 +61,20 @@ public class Lady : MonoBehaviour
     // FixedUpade 1 格執行 0.002 秒 (有使用物理寫在這裡)
     private void FixedUpdate()
     {
+        if (isAttack || isDamage) return;   // 跳出
         Walk();
         Jump();
+    }
+
+    // 觸發事件：碰到勾選 IsTrigger 碰撞器開始時候執行一次
+    private void OnTriggerEnter(Collider other)
+    {
+        print(other.tag);
+
+        if (other.tag == "陷阱")
+        {
+            Hurt();
+        }
     }
 
     // 定義方法
@@ -91,6 +132,8 @@ public class Lady : MonoBehaviour
     private void Hurt()
     {
         ani.SetTrigger(parDam);
+        hp -= 20;
+        if (hp <= 0) Dead();
     }
 
     /// <summary>
@@ -99,5 +142,8 @@ public class Lady : MonoBehaviour
     private void Dead()
     {
         ani.SetBool(parDead, true);
+        // this 此腳本
+        // enabled 啟動
+        this.enabled = false;
     }
 }
